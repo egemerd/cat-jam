@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df8aea29a37f2a04cbcdc701df3123db, type: 3}
   m_Name: EnemySquashProfile
   m_EditorClassIdentifier: Assembly-CSharp::EnemySquashConfigSO
-  squashAxisScale: 0.6
-  stretchAxisScale: 1.3
-  verticalScale: 0.9
-  duration: 0.22
+  squashAxisScale: 0.745
+  stretchAxisScale: 1.428
+  verticalScale: 0.958
+  duration: 0.319
   squashCurve:
     serializedVersion: 2
     m_Curve:

@@ -64,7 +64,6 @@ public class BounceBall : MonoBehaviour
     public LayerMask bounceMask = ~0;
     [Tooltip("The subset of bounceMask that counts as a WALL — triggers the chase boost and uses Wall Bounciness. Floor/ramp layers should NOT be in here.")]
     public LayerMask wallMask = 0;
-    public LayerMask groundMask = 0;
     [Tooltip("Roughly the ball's radius. Used by the predictive SphereCast and overlap recovery.")]
     public float castRadius = 0.3f;
     [Tooltip("Speed kept after a WALL bounce. 1 = lossless, 0.9 = loses 10%.")]
@@ -75,6 +74,8 @@ public class BounceBall : MonoBehaviour
     public float groundBounceThreshold = 1.5f;
     [Tooltip("Below this speed while touching the ground, the ball stops.")]
     public float settleSpeed = 0.5f;
+    [Tooltip("The ball must stay slow AND on the ground for this long before it stops. Non-zero so one apex frame beside a wall can't freeze the ball mid-air.")]
+    public float settleDwellTime = 0.15f;
     [Tooltip("Extra skin between the ball and surfaces after a bounce (prevents immediate re-overlap).")]
     public float surfaceSkin = 0.01f;
 
@@ -87,6 +88,11 @@ public class BounceBall : MonoBehaviour
     public float CurrentSpeed => _velocity.magnitude;
     public bool IsBouncing => _active;
 
+    /// <summary>Wall bounces accumulated since the LAST cat hit. Resets when the cat bats this ball again. Read by CatBallInteraction to scale the chase boost.</summary>
+    public int ComboCount { get; private set; }
+    /// <summary>Time the ball last reflected off a wall. Use with wallBounceWindow to decide if the ball is still 'hot'.</summary>
+    public float LastWallBounceTime { get; private set; } = -999f;
+
     private Rigidbody _rb;
     private Collider _col;
     private Vector3 _velocity;
@@ -94,15 +100,14 @@ public class BounceBall : MonoBehaviour
     private float _lastLaunchTime = -999f;
     private Coroutine _routine;
     private readonly Collider[] _overlapBuf = new Collider[8];
-
-    private EnemySquash _enemySquash;
+    EnemySquash enemySquash;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _col = GetComponent<Collider>();
         _rb.isKinematic = true;
-        //_rb.useGravity = false;
-        _enemySquash = GetComponent<EnemySquash>();
+        _rb.useGravity = false;
+        enemySquash = GetComponent<EnemySquash>();  
     }
 
     /// <summary>Called by the cat (CatBallInteraction) when it runs into this ball.</summary>
@@ -110,9 +115,12 @@ public class BounceBall : MonoBehaviour
     {
         if (_active && Time.time - _lastLaunchTime < reHitCooldown) return;
 
-        Vector3 dir = BuildBounceDirection(catForward);
-        _enemySquash.TriggerSquash(-dir); // squash in the opposite direction of the launch
+        // Cat hit the ball — combo resets. A new chain starts from the next wall bounce.
+        ComboCount = 0;
+        LastWallBounceTime = -999f;
 
+        Vector3 dir = BuildBounceDirection(catForward);
+        enemySquash.TriggerSquash(-dir);
         if (_routine != null) StopCoroutine(_routine);
         _routine = StartCoroutine(BallRoutine(dir));
     }
@@ -144,6 +152,7 @@ public class BounceBall : MonoBehaviour
         _velocity = dir * launchSpeed;
 
         float total = 0f, burst = 0f;
+        float settleAccum = 0f;
 
         while (true)
         {
@@ -173,10 +182,22 @@ public class BounceBall : MonoBehaviour
             MoveWithBounces(dt);
 
             // --- Settle ---
+            // Must stay slow AND actually on ground for settleDwellTime seconds.
+            // Single-frame qualification is NOT enough: at the apex of a tiny
+            // bounce velocity.y briefly passes through 0, and if a wall is near
+            // the ball at that instant the ball used to freeze in mid-air.
             if (_velocity.sqrMagnitude < settleSpeed * settleSpeed && IsOnGround())
             {
-                _velocity = Vector3.zero;
-                break;
+                settleAccum += dt;
+                if (settleAccum >= settleDwellTime)
+                {
+                    _velocity = Vector3.zero;
+                    break;
+                }
+            }
+            else
+            {
+                settleAccum = 0f;
             }
 
             yield return null;
@@ -211,7 +232,7 @@ public class BounceBall : MonoBehaviour
                 // Travel up to just before contact, then nudge off the surface.
                 float safeDist = Mathf.Max(0f, hit.distance - surfaceSkin);
                 transform.position += moveDir * safeDist + hit.normal * surfaceSkin;
-                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall")) _enemySquash.TriggerSquash(-moveDir); // squash in the opposite direction of the launch
+
                 HandleBounce(hit);
 
                 // Consume the portion of the step we actually used.
@@ -229,13 +250,15 @@ public class BounceBall : MonoBehaviour
     private void HandleBounce(RaycastHit hit)
     {
         bool isWall = ((1 << hit.collider.gameObject.layer) & wallMask) != 0;
-        
+
         if (isWall)
         {
             _velocity = Vector3.Reflect(_velocity, hit.normal) * wallBounciness;
-
+            enemySquash.TriggerSquash(-hit.normal);
+            ComboCount++;
+            LastWallBounceTime = Time.time;
             if (CatBallInteraction.Instance != null)
-                CatBallInteraction.Instance.RegisterWallBounce(transform);
+                CatBallInteraction.Instance.RegisterWallBounce(this);
 
             // >>> wall-hit VFX / sound hook goes here <<<
         }
@@ -286,12 +309,15 @@ public class BounceBall : MonoBehaviour
                     if (isWall)
                     {
                         _velocity = Vector3.Reflect(_velocity, pushDir) * wallBounciness;
+                        ComboCount++;
+                        LastWallBounceTime = Time.time;
                         if (CatBallInteraction.Instance != null)
-                            CatBallInteraction.Instance.RegisterWallBounce(transform);
+                            CatBallInteraction.Instance.RegisterWallBounce(this);
                     }
                     else
                     {
-                        float approach = -Vector3.Dot(_velocity, -pushDir); // same sign convention as HandleBounce
+                        // Same sign convention as HandleBounce: positive = heading INTO the surface.
+                        float approach = Vector3.Dot(_velocity, -pushDir);
                         if (approach > groundBounceThreshold)
                             _velocity = Vector3.Reflect(_velocity, pushDir) * groundBounciness;
                         else
@@ -302,11 +328,24 @@ public class BounceBall : MonoBehaviour
         }
     }
 
-    /// <summary>Dedicated downward probe. More reliable than inspecting the last hit's normal.</summary>
+    /// <summary>
+    /// Narrow downward probe — a tiny sphere inside the ball volume, not a
+    /// wide one that could overlap walls to the side. We also require the hit
+    /// surface to actually face UP (so walls / ceilings aren't mistaken for
+    /// ground) and reject a zero-distance hit (when SphereCast starts inside a
+    /// collider it fills the hit normal with -castDirection, so an overlap-at-
+    /// origin case would always look like "surface facing up" — that would
+    /// re-create the original mid-air freeze bug).
+    /// </summary>
     private bool IsOnGround()
     {
-        return Physics.SphereCast(transform.position + Vector3.up * 0.02f, castRadius * 0.9f,
-                                  Vector3.down, out _, 0.1f, groundMask, QueryTriggerInteraction.Ignore);
+        const float probeRadius = 0.05f;
+        if (Physics.SphereCast(transform.position, probeRadius, Vector3.down, out RaycastHit hit,
+                               castRadius + 0.05f, bounceMask, QueryTriggerInteraction.Ignore))
+        {
+            return hit.distance > 0f && hit.normal.y > 0.5f;
+        }
+        return false;
     }
 
     private void OnDrawGizmosSelected()

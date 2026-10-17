@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8833807836312090244}
   - component: {fileID: 5405698451477973738}
   - component: {fileID: 2197950668583067838}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SM_LPI_Floor_ParquetOak_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}

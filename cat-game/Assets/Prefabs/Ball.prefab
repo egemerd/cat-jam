@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6315686820407499726}
   - component: {fileID: 90308581065977797}
   - component: {fileID: 6196773120210453454}
+  - component: {fileID: 6341061957065356527}
   m_Layer: 14
   m_Name: Ball
   m_TagString: Untagged
@@ -33,7 +34,8 @@ Transform:
   m_LocalPosition: {x: -0.08, y: 2.47, z: 31.00979}
   m_LocalScale: {x: 0.59341, y: 0.59341, z: 0.59341}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6214119303802331925}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4359543824954108539
@@ -142,6 +144,9 @@ MonoBehaviour:
   wallMask:
     serializedVersion: 2
     m_Bits: 1024
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 256
   castRadius: 0.3
   wallBounciness: 0.996
   groundBounciness: 0.937
@@ -176,3 +181,48 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!114 &6341061957065356527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795727220897700144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e162490ecea26843b16f6c59fc9f340, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemySquash
+  defaultConfig: {fileID: 11400000, guid: dbc8db1d740a87e49a68bce805c57fe8, type: 2}
+  squashRoot: {fileID: 3270613358802232787}
+--- !u!1 &9176998031109575903
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6214119303802331925}
+  m_Layer: 14
+  m_Name: Root
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6214119303802331925
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9176998031109575903}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3270613358802232787}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

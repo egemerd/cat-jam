@@ -105,4 +105,9 @@ public class CatBallInteraction : MonoBehaviour
         if (controller != null)
             controller.ExternalSpeedBoost = _currentBoost;
     }
+
+    private void CatchBoostFov()
+    {
+
+    }
 }

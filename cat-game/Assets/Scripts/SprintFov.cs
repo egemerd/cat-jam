@@ -37,7 +37,7 @@ public class SprintFOV : MonoBehaviour
     private void Update()
     {
         if (vcam == null) return;
-
+        
         if (useLeftShiftAsSprint && Keyboard.current != null)
             IsSprinting = Keyboard.current.leftShiftKey.isPressed;
 

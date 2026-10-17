@@ -64,6 +64,7 @@ public class BounceBall : MonoBehaviour
     public LayerMask bounceMask = ~0;
     [Tooltip("The subset of bounceMask that counts as a WALL — triggers the chase boost and uses Wall Bounciness. Floor/ramp layers should NOT be in here.")]
     public LayerMask wallMask = 0;
+    public LayerMask groundMask = 0;
     [Tooltip("Roughly the ball's radius. Used by the predictive SphereCast and overlap recovery.")]
     public float castRadius = 0.3f;
     [Tooltip("Speed kept after a WALL bounce. 1 = lossless, 0.9 = loses 10%.")]
@@ -94,12 +95,14 @@ public class BounceBall : MonoBehaviour
     private Coroutine _routine;
     private readonly Collider[] _overlapBuf = new Collider[8];
 
+    private EnemySquash _enemySquash;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _col = GetComponent<Collider>();
         _rb.isKinematic = true;
-        _rb.useGravity = false;
+        //_rb.useGravity = false;
+        _enemySquash = GetComponent<EnemySquash>();
     }
 
     /// <summary>Called by the cat (CatBallInteraction) when it runs into this ball.</summary>
@@ -108,6 +111,8 @@ public class BounceBall : MonoBehaviour
         if (_active && Time.time - _lastLaunchTime < reHitCooldown) return;
 
         Vector3 dir = BuildBounceDirection(catForward);
+        _enemySquash.TriggerSquash(-dir); // squash in the opposite direction of the launch
+
         if (_routine != null) StopCoroutine(_routine);
         _routine = StartCoroutine(BallRoutine(dir));
     }
@@ -206,7 +211,7 @@ public class BounceBall : MonoBehaviour
                 // Travel up to just before contact, then nudge off the surface.
                 float safeDist = Mathf.Max(0f, hit.distance - surfaceSkin);
                 transform.position += moveDir * safeDist + hit.normal * surfaceSkin;
-
+                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall")) _enemySquash.TriggerSquash(-moveDir); // squash in the opposite direction of the launch
                 HandleBounce(hit);
 
                 // Consume the portion of the step we actually used.
@@ -224,7 +229,7 @@ public class BounceBall : MonoBehaviour
     private void HandleBounce(RaycastHit hit)
     {
         bool isWall = ((1 << hit.collider.gameObject.layer) & wallMask) != 0;
-
+        
         if (isWall)
         {
             _velocity = Vector3.Reflect(_velocity, hit.normal) * wallBounciness;
@@ -301,7 +306,7 @@ public class BounceBall : MonoBehaviour
     private bool IsOnGround()
     {
         return Physics.SphereCast(transform.position + Vector3.up * 0.02f, castRadius * 0.9f,
-                                  Vector3.down, out _, 0.1f, bounceMask, QueryTriggerInteraction.Ignore);
+                                  Vector3.down, out _, 0.1f, groundMask, QueryTriggerInteraction.Ignore);
     }
 
     private void OnDrawGizmosSelected()

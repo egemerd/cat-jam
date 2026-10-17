@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: ebb995e06421309abbce948deec0e4f1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 411314
+  packageName: 'DOLLHOUSE - FREE - Modular Low Poly Interiors: Furniture & Room Kit'
+  packageVersion: 1.0
+  assetPath: Assets/LowPolyInteriorsFree/Editor/LPI_Setup.cs
+  uploadId: 1005282

@@ -90,6 +90,8 @@ public class CatBallInteraction : MonoBehaviour
     private bool _speedLinesOn;    // cached — we only touch the particle system when this CHANGES
     private bool _speedLinesInit;  // one-time setup flag
 
+    public GameObject bounceVfx;
+    private bool vfxPlayed = false;
     private class HotBall
     {
         public BounceBall ball;
@@ -131,8 +133,11 @@ public class CatBallInteraction : MonoBehaviour
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         BounceBall ball = hit.collider.GetComponentInParent<BounceBall>();
-        if (ball != null)
-            ball.BounceFromCat(transform.forward);
+        if(ball != null)
+        {  
+            ball.BounceFromCat(transform.forward, hit.point);
+        }
+        vfxPlayed = false;
     }
 
     private void Update()

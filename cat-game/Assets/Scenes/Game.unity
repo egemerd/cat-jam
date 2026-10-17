@@ -2337,6 +2337,10 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4983231003928249873, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
+      propertyPath: bounceVfx
+      value: 
+      objectReference: {fileID: 389905995837907964, guid: 9487182ce52ff90449f25032bb09e0a1, type: 3}
+    - target: {fileID: 4983231003928249873, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
       propertyPath: speedLines
       value: 
       objectReference: {fileID: 949296291}

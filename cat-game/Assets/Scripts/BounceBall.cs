@@ -101,6 +101,8 @@ public class BounceBall : MonoBehaviour
     private Coroutine _routine;
     private readonly Collider[] _overlapBuf = new Collider[8];
     EnemySquash enemySquash;
+    public GameObject bounceVfx;
+    
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -111,7 +113,7 @@ public class BounceBall : MonoBehaviour
     }
 
     /// <summary>Called by the cat (CatBallInteraction) when it runs into this ball.</summary>
-    public void BounceFromCat(Vector3 catForward)
+    public void BounceFromCat(Vector3 catForward , Vector3 hitPoint)
     {
         if (_active && Time.time - _lastLaunchTime < reHitCooldown) return;
 
@@ -121,6 +123,9 @@ public class BounceBall : MonoBehaviour
 
         Vector3 dir = BuildBounceDirection(catForward);
         enemySquash.TriggerSquash(-dir);
+        VfxSpawner.Play(bounceVfx, hitPoint, Quaternion.LookRotation(-dir));
+
+
         if (_routine != null) StopCoroutine(_routine);
         _routine = StartCoroutine(BallRoutine(dir));
     }

@@ -144,16 +144,15 @@ MonoBehaviour:
   wallMask:
     serializedVersion: 2
     m_Bits: 1024
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 256
   castRadius: 0.3
   wallBounciness: 0.996
   groundBounciness: 0.937
   groundBounceThreshold: 1.5
   settleSpeed: 0.5
+  settleDwellTime: 0.15
   surfaceSkin: 0.01
   reHitCooldown: 0.8
+  bounceVfx: {fileID: 389905995837907964, guid: 9487182ce52ff90449f25032bb09e0a1, type: 3}
 --- !u!54 &6196773120210453454
 Rigidbody:
   m_ObjectHideFlags: 0

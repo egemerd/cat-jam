@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using DG.Tweening;
 
 /// <summary>
 /// Minimal HUD — only the displays you asked for:
@@ -65,12 +66,27 @@ public class HudController : MonoBehaviour
     public string ringCountFormat = "RINGS: {0}";
 
     [Header("8. Combo timer bar")]
-    [Tooltip("Image with 'Image Type: Filled' + 'Fill Method: Horizontal' (or Vertical/Radial). Dolu = combo yeni başladı, boşalınca combo biter.")]
+    [Tooltip("Image with 'Image Type: Filled' + 'Fill Method: Horizontal' (or Vertical/Radial).")]
     public Image comboBarFill;
     [Tooltip("Bar'ı tutan group (optional). Combo aktifken aç/kapat, boşken gizle.")]
     public GameObject comboBarGroup;
     [Tooltip("Combo yokken bar'ı tamamen boş mu göstersin (true) yoksa gizlesin mi (false).")]
     public bool keepBarVisibleWhenInactive = false;
+
+    [Header("Punch animations (DOTween)")]
+    [Tooltip("Her punch'ta bu kadar fazlalık scale uygulanır. 0.3 = +%30 anlık büyüme.")]
+    public float trickPunchStrength = 0.35f;
+    public float trickPunchDuration = 0.25f;
+    [Tooltip("Cash-out ve total score daha hype — biraz daha güçlü punch.")]
+    public float cashOutPunchStrength = 0.45f;
+    public float cashOutPunchDuration = 0.30f;
+    [Tooltip("Combo bump'ta multiplier text'inin punch'u.")]
+    public float comboPunchStrength = 0.3f;
+    public float comboPunchDuration = 0.22f;
+    [Tooltip("Punch'ın kaç titreşim yapacağı. 1 = tek büyüme-dönme, 3-5 = elastik salınım.")]
+    public int punchVibrato = 3;
+    [Tooltip("Punch sonrası yay esnekliği (0 = direkt kapanır, 1 = epey elastik salınır).")]
+    [Range(0f, 1f)] public float punchElasticity = 0.5f;
 
     // --- internal state ---
     private int _rawPendingBase;      // running sum of BASE (un-multiplied) TRICK points this combo
@@ -186,13 +202,15 @@ public class HudController : MonoBehaviour
     /// </summary>
     private void HandleTrickName(string label)
     {
+        // Group görünür hale gelsin, sonra punch at — kapalı GameObject'te punch görünmez.
+        if (trickGroup != null && !trickGroup.activeSelf) trickGroup.SetActive(true);
+
         if (trickText != null) trickText.text = label;
 
         int basePoints = ComboScoreSystem.Instance != null
             ? ComboScoreSystem.Instance.LastTrickBasePoints
             : 0;
 
-        // basePoints == 0 means it's a decorative milestone ("COMBO x4!"), no "+N" to show.
         if (basePoints > 0)
         {
             _lastTrickBase = basePoints;
@@ -203,18 +221,29 @@ public class HudController : MonoBehaviour
         {
             trickPointsText.text = "";
         }
+
+        // Punch animations
+        Punch(trickText, trickPunchStrength, trickPunchDuration);
+        if (basePoints > 0) Punch(trickPointsText, trickPunchStrength * 0.7f, trickPunchDuration);
+        Punch(comboCounterText, comboPunchStrength, comboPunchDuration);
+        Punch(calcText, comboPunchStrength * 0.6f, comboPunchDuration);
     }
 
     private void HandleScoreCommitted(int amount)
     {
-        if (lastCashOutText == null) return;
-
-        lastCashOutText.text = string.Format(lastCashOutFormat, amount);
-        if (lastCashOutLingerTime > 0f)
+        if (lastCashOutText != null)
         {
-            if (_cashOutLingerCo != null) StopCoroutine(_cashOutLingerCo);
-            _cashOutLingerCo = StartCoroutine(ClearAfter(lastCashOutText, lastCashOutLingerTime));
+            lastCashOutText.text = string.Format(lastCashOutFormat, amount);
+            if (lastCashOutLingerTime > 0f)
+            {
+                if (_cashOutLingerCo != null) StopCoroutine(_cashOutLingerCo);
+                _cashOutLingerCo = StartCoroutine(ClearAfter(lastCashOutText, lastCashOutLingerTime));
+            }
         }
+
+        // Punch — hem kazanılan miktar hem toplam skor hype olsun.
+        Punch(lastCashOutText, cashOutPunchStrength, cashOutPunchDuration);
+        Punch(totalScoreText, cashOutPunchStrength * 0.7f, cashOutPunchDuration);
     }
 
     private void HandleComboEnded()
@@ -229,5 +258,19 @@ public class HudController : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         if (t != null) t.text = "";
+    }
+
+    /// <summary>
+    /// DOTween punch helper. Null-safe, reentrant-safe.
+    /// Önceki tween'i öldürür, scale'i resetler, yeni punch başlatır.
+    /// Böylece hızlı art arda punch'lar stacklenip scale'i şişirmez.
+    /// </summary>
+    private void Punch(TMP_Text t, float strength, float duration)
+    {
+        if (t == null) return;
+        var tr = t.transform;
+        tr.DOKill();
+        tr.localScale = Vector3.one;
+        tr.DOPunchScale(Vector3.one * strength, duration, punchVibrato, punchElasticity);
     }
 }

@@ -7940,6 +7940,14 @@ MonoBehaviour:
   comboBarFill: {fileID: 1023407367}
   comboBarGroup: {fileID: 0}
   keepBarVisibleWhenInactive: 0
+  trickPunchStrength: 0.35
+  trickPunchDuration: 0.25
+  cashOutPunchStrength: 0.45
+  cashOutPunchDuration: 0.3
+  comboPunchStrength: 0.3
+  comboPunchDuration: 0.22
+  punchVibrato: 3
+  punchElasticity: 0.5
 --- !u!4 &1295647837
 Transform:
   m_ObjectHideFlags: 0

@@ -65,7 +65,7 @@ namespace StarterAssets
         [Header("Cinemachine")]
         [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
         public GameObject CinemachineCameraTarget;
-       
+
 
         [Tooltip("How far in degrees can you move the camera up")]
         public float TopClamp = 70.0f;
@@ -114,6 +114,12 @@ namespace StarterAssets
 
         private bool _hasAnimator;
 
+        [Header("Pose models (one active at a time)")]
+        public GameObject idleModel;
+        public GameObject jumpModel;
+        public GameObject runModel;
+
+
         private bool IsCurrentDeviceMouse
         {
             get
@@ -139,7 +145,7 @@ namespace StarterAssets
         private void Start()
         {
             _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
-            
+
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
@@ -160,9 +166,12 @@ namespace StarterAssets
         {
             _hasAnimator = TryGetComponent(out _animator);
 
-            JumpAndGravity();
+            // Order matters: Grounded must be current before JumpAndGravity reads it,
+            // and the model switch (UpdatePoseModel) runs LAST so nothing overwrites it.
             GroundedCheck();
+            JumpAndGravity();
             Move();
+            UpdatePoseModel();
         }
 
         private void LateUpdate()
@@ -222,9 +231,6 @@ namespace StarterAssets
 
             targetSpeed += ExternalSpeedBoost;
 
-            Debug.Log($"Target speed: {targetSpeed}, External boost: {ExternalSpeedBoost}");
-            // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
             // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is no input, set the target speed to 0
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
@@ -267,7 +273,7 @@ namespace StarterAssets
                 float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
                     RotationSmoothTime);
 
-                
+
                 // rotate to face input direction relative to camera position
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
@@ -354,6 +360,39 @@ namespace StarterAssets
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
             }
+        }
+
+        /// <summary>
+        /// Picks the right pose model for this frame and swaps the active one.
+        /// Runs AFTER JumpAndGravity and Move so nothing can overwrite it.
+        /// Decision tree:
+        ///   Airborne   -> jumpModel
+        ///   Moving     -> runModel
+        ///   Otherwise  -> idleModel
+        /// Only touches SetActive when the state actually changes to avoid flicker
+        /// and the Awake/OnEnable overhead of toggling every frame.
+        /// </summary>
+        private void UpdatePoseModel()
+        {
+            GameObject target;
+            if (!Grounded)
+                target = jumpModel;
+            else if (_input.move.magnitude > 0.05f)
+                target = runModel;
+            else
+                target = idleModel;
+
+            SetSoleActive(target);
+        }
+
+        private void SetSoleActive(GameObject which)
+        {
+            if (idleModel != null && idleModel.activeSelf != (which == idleModel))
+                idleModel.SetActive(which == idleModel);
+            if (jumpModel != null && jumpModel.activeSelf != (which == jumpModel))
+                jumpModel.SetActive(which == jumpModel);
+            if (runModel != null && runModel.activeSelf != (which == runModel))
+                runModel.SetActive(which == runModel);
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)

@@ -103,6 +103,7 @@ public class BounceBall : MonoBehaviour
     EnemySquash enemySquash;
     public GameObject bounceVfx;
     
+    
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();

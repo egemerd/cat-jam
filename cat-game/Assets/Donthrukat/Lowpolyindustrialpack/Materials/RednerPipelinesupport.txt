@@ -1,0 +1,8 @@
+Render Pipeline Support:
+
+This asset was created for Unity Built-in Render Pipeline.
+
+URP Support:
+
+URP materials are included in the Materials/URP folder.
+For URP projects, use these materials instead of the Built-in materials.

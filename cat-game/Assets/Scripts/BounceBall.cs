@@ -102,8 +102,8 @@ public class BounceBall : MonoBehaviour
     private readonly Collider[] _overlapBuf = new Collider[8];
     EnemySquash enemySquash;
     public GameObject bounceVfx;
-    
-    
+
+    private Vector3? _velocityOverride;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -132,6 +132,15 @@ public class BounceBall : MonoBehaviour
         return true;
     }
 
+    public void Launch(Vector3 velocity)
+    {
+        ComboCount = 0;
+        LastWallBounceTime = -999f;
+        _velocityOverride = velocity;
+        if (_routine != null) StopCoroutine(_routine);
+        Vector3 dir = velocity.sqrMagnitude > 0.0001f ? velocity.normalized : Vector3.down;
+        _routine = StartCoroutine(BallRoutine(dir));
+    }
     private Vector3 BuildBounceDirection(Vector3 catForward)
     {
         catForward.y = 0f;
@@ -156,7 +165,8 @@ public class BounceBall : MonoBehaviour
         yield return new WaitForSeconds(hitStopDuration);
 
         // 2) Hard initial kick.
-        _velocity = dir * launchSpeed;
+        _velocity = _velocityOverride ?? (dir * launchSpeed);
+        _velocityOverride = null;
 
         float total = 0f, burst = 0f;
         float settleAccum = 0f;

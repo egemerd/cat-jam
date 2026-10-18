@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
@@ -62,6 +63,14 @@ public class HudController : MonoBehaviour
     [Tooltip("Shows how many perfect ring passes the cat has done this session.")]
     public TMP_Text ringCountText;
     public string ringCountFormat = "RINGS: {0}";
+
+    [Header("8. Combo timer bar")]
+    [Tooltip("Image with 'Image Type: Filled' + 'Fill Method: Horizontal' (or Vertical/Radial). Dolu = combo yeni başladı, boşalınca combo biter.")]
+    public Image comboBarFill;
+    [Tooltip("Bar'ı tutan group (optional). Combo aktifken aç/kapat, boşken gizle.")]
+    public GameObject comboBarGroup;
+    [Tooltip("Combo yokken bar'ı tamamen boş mu göstersin (true) yoksa gizlesin mi (false).")]
+    public bool keepBarVisibleWhenInactive = false;
 
     // --- internal state ---
     private int _rawPendingBase;      // running sum of BASE (un-multiplied) TRICK points this combo
@@ -145,6 +154,18 @@ public class HudController : MonoBehaviour
             goalCountText.text = string.Format(goalCountFormat, s.GoalsScored);
         if (ringCountText != null)
             ringCountText.text = string.Format(ringCountFormat, s.PerfectRings);
+
+        // Combo timer bar — combo aktifken dolu, bitince boş. Her tick resetlenince
+        // tekrar dolar (çünkü ComboTimeRemaining her trick'te comboWindow'a atanıyor).
+        bool showBar = comboActive || keepBarVisibleWhenInactive;
+        if (comboBarGroup != null && comboBarGroup.activeSelf != showBar)
+            comboBarGroup.SetActive(showBar);
+        if (comboBarFill != null)
+        {
+            comboBarFill.fillAmount = comboActive
+                ? Mathf.Clamp01(s.ComboTimeRemaining / s.ComboWindowDuration)
+                : 0f;
+        }
 
         // Total score — smooth catch-up so cash-outs tick visibly (100 -> 500) instead of snapping.
         // Big gaps race faster than small ones so a huge payout doesn't take forever to arrive.

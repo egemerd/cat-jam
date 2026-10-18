@@ -5,28 +5,7 @@ using StarterAssets;
 using Unity.Cinemachine;
 #endif
 
-/// <summary>
-/// Goes on the CAT (next to ThirdPersonController).
-///
-/// Boost model (per the latest design):
-///  - Each ball that has bounced off a wall is a "hot ball" and tracks its own
-///    combo (bounces since the last cat touch). The ball object owns the combo
-///    count; this script just reads it.
-///  - Each hot ball has its OWN boost contribution. When the cat is aiming at
-///    that ball (via the main camera's forward, i.e. the middle of the screen),
-///    that ball's contribution SNAPS to its combo-based target immediately —
-///    the "first contact" instant kick you asked for. When the cat stops looking
-///    at that ball, its contribution LERPS down to zero on its own timer.
-///  - The applied speed boost is the MAX of every ball's current contribution,
-///    so if you build a huge combo on one ball you keep that speed for a moment
-///    even if you glance at a smaller ball, and glancing at a higher-combo ball
-///    instantly upgrades the boost.
-///  - FOV follows the applied boost ratio.
-///
-/// Aim is the main CAMERA'S forward, projected to the ground — in a third-
-/// person setup that's "where the middle of my screen is pointing", not the
-/// cat's facing (which lags the camera).
-/// </summary>
+
 [RequireComponent(typeof(CharacterController))]
 public class CatBallInteraction : MonoBehaviour
 {
@@ -136,6 +115,7 @@ public class CatBallInteraction : MonoBehaviour
         if(ball != null)
         {  
             ball.BounceFromCat(transform.forward, hit.point);
+            ComboScoreSystem.Instance?.OnCatHitBall();
         }
         vfxPlayed = false;
     }

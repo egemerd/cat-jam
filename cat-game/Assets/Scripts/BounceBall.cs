@@ -265,7 +265,7 @@ public class BounceBall : MonoBehaviour
             LastWallBounceTime = Time.time;
             if (CatBallInteraction.Instance != null)
                 CatBallInteraction.Instance.RegisterWallBounce(this);
-
+            ComboScoreSystem.Instance?.OnBallHitWall();
             // >>> wall-hit VFX / sound hook goes here <<<
         }
         else
@@ -319,6 +319,7 @@ public class BounceBall : MonoBehaviour
                         LastWallBounceTime = Time.time;
                         if (CatBallInteraction.Instance != null)
                             CatBallInteraction.Instance.RegisterWallBounce(this);
+                        ComboScoreSystem.Instance?.OnBallHitWall();
                     }
                     else
                     {

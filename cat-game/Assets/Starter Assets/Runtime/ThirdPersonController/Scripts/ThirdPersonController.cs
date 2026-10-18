@@ -12,6 +12,7 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM
     [RequireComponent(typeof(PlayerInput))]
 #endif
+
     public class ThirdPersonController : MonoBehaviour
     {
         [Header("Player")]
@@ -117,7 +118,7 @@ namespace StarterAssets
         public GameObject idleModel;
         public GameObject jumpModel;
         public GameObject runModel;
-
+        
 
         private bool IsCurrentDeviceMouse
         {
@@ -317,7 +318,7 @@ namespace StarterAssets
                 {
                     // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-
+                    
                     // update animator if using character
                     if (_hasAnimator)
                     {

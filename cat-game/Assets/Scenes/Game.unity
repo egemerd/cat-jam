@@ -9067,6 +9067,151 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1926441570
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1926441572}
+  - component: {fileID: 1926441571}
+  - component: {fileID: 1926441573}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1926441571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926441570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 631c015839f0b4d4e81f087856a377d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  initialPoolSize: 12
+  maxPoolSize: 32
+  defaultSfxGroup: {fileID: 0}
+--- !u!4 &1926441572
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926441570}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.53839, y: 6.63903, z: 32.66254}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1926441573
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926441570}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &1926553073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9500,6 +9645,10 @@ PrefabInstance:
       value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 4983231003928249873, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
+      propertyPath: bounceSound
+      value: 
+      objectReference: {fileID: 11400000, guid: 6979b4ac8c1cca1438811e1c80e8e2f1, type: 2}
+    - target: {fileID: 4983231003928249873, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
       propertyPath: bonusPerCombo
       value: 1.5
       objectReference: {fileID: 0}
@@ -9545,6 +9694,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5098137290620191975, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4416926083347132244}
+    - targetCorrespondingSourceObject: {fileID: 5098137290620191975, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4416926083347132245}
   m_SourcePrefab: {fileID: 100100000, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
 --- !u!23 &1711813855196058229
 MeshRenderer:
@@ -9791,6 +9943,7 @@ MonoBehaviour:
   requireAirborne: 1
   reTriggerCooldown: 1.5
   ringVfx: {fileID: 663457035}
+  winSfx: {fileID: 11400000, guid: cbb0a743e3b2d3b47b2c758f5953650f, type: 2}
 --- !u!65 &3469287837916817089
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9912,6 +10065,20 @@ MonoBehaviour:
   wallBounceTrickName: WALL BOUNCE
   bigComboTrickName: COMBO
   bigComboThreshold: 3
+--- !u!114 &4416926083347132245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305459879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 168bc5758953c6f48a1426778389f2d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CatJumpSound
+  jumpSound: {fileID: 11400000, guid: 9c2941166edd35e4fbebdde8ae296f7e, type: 2}
+  landSound: {fileID: 0}
 --- !u!1001 &5226203432431967431
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10154,6 +10321,7 @@ MonoBehaviour:
   comboMultiplier: 0.5
   destroyBallOnGoal: 1
   goalVfx: {fileID: 1784031605}
+  winSfx: {fileID: 11400000, guid: cbb0a743e3b2d3b47b2c758f5953650f, type: 2}
 --- !u!65 &7596044763396284917
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10383,3 +10551,4 @@ SceneRoots:
   - {fileID: 1626416678}
   - {fileID: 1449843453}
   - {fileID: 344150192}
+  - {fileID: 1926441572}

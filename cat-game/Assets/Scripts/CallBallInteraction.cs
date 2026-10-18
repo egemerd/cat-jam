@@ -68,7 +68,7 @@ public class CatBallInteraction : MonoBehaviour
     private float _currentFov;
     private bool _speedLinesOn;    // cached — we only touch the particle system when this CHANGES
     private bool _speedLinesInit;  // one-time setup flag
-
+    
     public GameObject bounceVfx;
     private bool vfxPlayed = false;
     private class HotBall
@@ -120,6 +120,7 @@ public class CatBallInteraction : MonoBehaviour
             }
         }
         vfxPlayed = false;
+        
     }
 
     private void Update()

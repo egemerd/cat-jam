@@ -102,7 +102,7 @@ public class BounceBall : MonoBehaviour
     private readonly Collider[] _overlapBuf = new Collider[8];
     EnemySquash enemySquash;
     public GameObject bounceVfx;
-
+    public SoundSO bounceSound;
     private Vector3? _velocityOverride;
     private void Awake()
     {
@@ -125,7 +125,7 @@ public class BounceBall : MonoBehaviour
         Vector3 dir = BuildBounceDirection(catForward);
         enemySquash.TriggerSquash(-dir);
         VfxSpawner.Play(bounceVfx, hitPoint, Quaternion.LookRotation(-dir));
-
+        AudioManager.Instance.Play(bounceSound);
 
         if (_routine != null) StopCoroutine(_routine);
         _routine = StartCoroutine(BallRoutine(dir));

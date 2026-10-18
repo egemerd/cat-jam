@@ -30,7 +30,7 @@ public class BigRing : MonoBehaviour
     [Header("Visual")]
     [Tooltip("Optional VFX prefab spawned at the ring center on a successful pass.")]
     public ParticleSystem ringVfx;
-
+    public SoundSO winSfx;
     private float _lastScoreTime = -999f;
 
     private void Reset()
@@ -60,5 +60,6 @@ public class BigRing : MonoBehaviour
         ComboScoreSystem.Instance?.OnCatInRing(ringScore, trickName);
 
         if (ringVfx != null) ringVfx.Play();
+        if (winSfx != null) AudioManager.Instance?.Play(winSfx);
     }
 }

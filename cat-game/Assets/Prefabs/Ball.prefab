@@ -153,6 +153,7 @@ MonoBehaviour:
   surfaceSkin: 0.01
   reHitCooldown: 0.8
   bounceVfx: {fileID: 389905995837907964, guid: 9487182ce52ff90449f25032bb09e0a1, type: 3}
+  bounceSound: {fileID: 11400000, guid: 6979b4ac8c1cca1438811e1c80e8e2f1, type: 2}
 --- !u!54 &6196773120210453454
 Rigidbody:
   m_ObjectHideFlags: 0

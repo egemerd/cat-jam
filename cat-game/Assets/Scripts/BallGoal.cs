@@ -26,6 +26,7 @@ public class BallGoal : MonoBehaviour
     public bool destroyBallOnGoal = true;
     [Tooltip("Optional VFX prefab spawned at the ball's entry point.")]
     public ParticleSystem goalVfx;
+    public SoundSO winSfx;
 
     private void Reset()
     {
@@ -48,5 +49,6 @@ public class BallGoal : MonoBehaviour
 
         if (goalVfx != null) goalVfx.Play();
         if (destroyBallOnGoal) Destroy(ball.gameObject);
+        if (winSfx != null) AudioManager.Instance?.Play(winSfx);
     }
 }

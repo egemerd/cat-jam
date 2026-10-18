@@ -1,0 +1,196 @@
+﻿using UnityEngine;
+using TMPro;
+using System.Collections;
+
+/// <summary>
+/// Minimal HUD — only the displays you asked for:
+///
+///   1. TRICK + POINTS       e.g. "BAT!" / "+50"
+///      The last trick's name on top, its base points underneath.
+///
+///   2. SCORE CALCULATOR     e.g. "1000 x 1.9"
+///      Running raw-base this combo, times the current multiplier.
+///
+///   3. LAST CASH-OUT        e.g. "+1900"
+///      The amount from the most recent cash-out (combo end or air land).
+///
+///   4. TOTAL SCORE          e.g. "12,345"
+///      Committed total across the whole session.
+///
+///   5. COMBO COUNTER        e.g. "x1.9"
+///      The live multiplier as a standalone number.
+///
+/// Any slot left empty is skipped — safe to wire a partial HUD.
+/// No external dependencies.
+/// </summary>
+public class HudController : MonoBehaviour
+{
+    [Header("1. Trick label + its points")]
+    [Tooltip("Big label — 'BAT!', 'WALL BOUNCE', etc.")]
+    public TMP_Text trickText;
+    [Tooltip("Small line under the label — base points for that trick ('+50').")]
+    public TMP_Text trickPointsText;
+    [Tooltip("Group that holds both texts. Hidden when no combo is active.")]
+    public GameObject trickGroup;
+
+    [Header("2. Score calculator ((air + static) x multiplier)")]
+    [Tooltip("Single text line showing air time points, static trick points, and the multiplier. Format is HARDCODED in code so an old inspector value can't shadow it.")]
+    public TMP_Text calcText;
+
+    [Header("3. Last cash-out")]
+    public TMP_Text lastCashOutText;
+    public string lastCashOutFormat = "+{0:N0}";
+    [Tooltip("Seconds the last-cash-out text stays visible. 0 = permanent.")]
+    public float lastCashOutLingerTime = 3f;
+
+    [Header("4. Total score")]
+    public TMP_Text totalScoreText;
+    public string totalScoreFormat = "{0:N0}";
+    [Tooltip("How many points per second the DISPLAYED total races toward the real total. Big gaps race faster than this (we add 4x the gap on top). Higher = snappier, lower = longer dramatic tick-up.")]
+    public float totalCatchUpRate = 1500f;
+
+    [Header("5. Combo counter")]
+    public TMP_Text comboCounterText;
+    public string comboCounterFormat = "x{0:F1}";
+
+    // --- internal state ---
+    private int _rawPendingBase;      // running sum of BASE (un-multiplied) TRICK points this combo
+    private int _lastTrickBase;       // base points of the most recent trick (for the "+50" line)
+    private float _displayedTotal;    // float version of TotalScore that lerps toward the real value
+    private Coroutine _cashOutLingerCo;
+
+    private void Start()
+    {
+        if (trickGroup != null) trickGroup.SetActive(false);
+        if (calcText != null) calcText.text = "";
+        if (lastCashOutText != null) lastCashOutText.text = "";
+        if (comboCounterText != null) comboCounterText.text = "";
+
+        // Seed displayed total so the counter doesn't rush up from 0 on scene start.
+        if (ComboScoreSystem.Instance != null)
+            _displayedTotal = ComboScoreSystem.Instance.TotalScore;
+        if (totalScoreText != null)
+            totalScoreText.text = string.Format(totalScoreFormat, Mathf.FloorToInt(_displayedTotal));
+    }
+
+    // ===== event subscription =====
+
+    private void OnEnable()
+    {
+        var s = ComboScoreSystem.Instance;
+        if (s == null) return;
+
+        s.OnTrickName.AddListener(HandleTrickName);
+        s.OnScoreCommitted.AddListener(HandleScoreCommitted);
+        s.OnComboEnded.AddListener(HandleComboEnded);
+    }
+
+    private void OnDisable()
+    {
+        var s = ComboScoreSystem.Instance;
+        if (s == null) return;
+
+        s.OnTrickName.RemoveListener(HandleTrickName);
+        s.OnScoreCommitted.RemoveListener(HandleScoreCommitted);
+        s.OnComboEnded.RemoveListener(HandleComboEnded);
+    }
+
+    // ===== per-frame polling =====
+
+    private void Update()
+    {
+        var s = ComboScoreSystem.Instance;
+        if (s == null) return;
+
+        bool comboActive = s.ComboActive;
+
+        // Trick label only while a combo is active.
+        if (trickGroup != null && trickGroup.activeSelf != comboActive)
+            trickGroup.SetActive(comboActive);
+
+        // Score calculator: (air + static) × multiplier — shown as two separate
+        // numbers in parens, NEVER as a precomputed sum. Hardcoded format so an
+        // old serialized inspector string can't shadow this.
+        if (calcText != null)
+        {
+            if (comboActive)
+            {
+                int airPart = Mathf.FloorToInt(s.AirBuffer);
+                int staticPart = _rawPendingBase;
+                float mult = s.CurrentCombo;
+                calcText.text = "(" + airPart + " + " + staticPart + ") x " + mult.ToString("F1");
+            }
+            else
+            {
+                calcText.text = "";
+            }
+        }
+
+        // Combo counter standalone.
+        if (comboCounterText != null)
+            comboCounterText.text = comboActive ? string.Format(comboCounterFormat, s.CurrentCombo) : "";
+
+        // Total score — smooth catch-up so cash-outs tick visibly (100 -> 500) instead of snapping.
+        // Big gaps race faster than small ones so a huge payout doesn't take forever to arrive.
+        float target = s.TotalScore;
+        float gap = target - _displayedTotal;
+        float step = Mathf.Max(totalCatchUpRate, Mathf.Abs(gap) * 4f) * Time.deltaTime;
+        _displayedTotal = Mathf.MoveTowards(_displayedTotal, target, step);
+        if (totalScoreText != null)
+            totalScoreText.text = string.Format(totalScoreFormat, Mathf.FloorToInt(_displayedTotal));
+    }
+
+    // ===== event handlers =====
+
+    /// <summary>
+    /// Fired right after ComboScoreSystem sets LastTrickBasePoints, so we read the
+    /// base amount from there. One-arg event avoids UnityEvent&lt;string,int&gt;
+    /// serialization quirks across Unity versions.
+    /// </summary>
+    private void HandleTrickName(string label)
+    {
+        if (trickText != null) trickText.text = label;
+
+        int basePoints = ComboScoreSystem.Instance != null
+            ? ComboScoreSystem.Instance.LastTrickBasePoints
+            : 0;
+
+        // basePoints == 0 means it's a decorative milestone ("COMBO x4!"), no "+N" to show.
+        if (basePoints > 0)
+        {
+            _lastTrickBase = basePoints;
+            _rawPendingBase += basePoints;
+            if (trickPointsText != null) trickPointsText.text = $"+{basePoints}";
+        }
+        else if (trickPointsText != null)
+        {
+            trickPointsText.text = "";
+        }
+    }
+
+    private void HandleScoreCommitted(int amount)
+    {
+        if (lastCashOutText == null) return;
+
+        lastCashOutText.text = string.Format(lastCashOutFormat, amount);
+        if (lastCashOutLingerTime > 0f)
+        {
+            if (_cashOutLingerCo != null) StopCoroutine(_cashOutLingerCo);
+            _cashOutLingerCo = StartCoroutine(ClearAfter(lastCashOutText, lastCashOutLingerTime));
+        }
+    }
+
+    private void HandleComboEnded()
+    {
+        _rawPendingBase = 0;
+        _lastTrickBase = 0;
+        if (calcText != null) calcText.text = "";
+        if (trickPointsText != null) trickPointsText.text = "";
+    }
+
+    private static IEnumerator ClearAfter(TMP_Text t, float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (t != null) t.text = "";
+    }
+}

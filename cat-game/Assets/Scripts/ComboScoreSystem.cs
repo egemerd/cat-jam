@@ -32,6 +32,7 @@ using StarterAssets;
 ///   - Assign 'controller' to the cat's ThirdPersonController so this script
 ///     can read Grounded. Auto-filled on the same object.
 /// </summary>
+[DefaultExecutionOrder(-100)] // make sure Instance is set before any UI OnEnable
 public class ComboScoreSystem : MonoBehaviour
 {
     public static ComboScoreSystem Instance { get; private set; }
@@ -69,11 +70,16 @@ public class ComboScoreSystem : MonoBehaviour
     public bool ComboActive => CurrentCombo >= comboStart;
     public float ComboWindowDuration => comboWindow;    // for UI progress bars
 
+    /// <summary>Base points of the most recent trick. Read this inside an OnTrickName handler.</summary>
+    public int LastTrickBasePoints { get; private set; }
+
     // --- events (hook up in inspector OR via code for UI animations) ---
     [Header("Events (optional, for UI feedback)")]
-    public UnityEvent<int> OnScoreCommitted;   // fires with the amount committed to TotalScore
-    public UnityEvent<float> OnComboChanged;   // fires with the new combo value (0 means combo just ended)
-    public UnityEvent OnComboEnded;            // fires on cash-out
+    public UnityEvent<int> OnScoreCommitted;    // fires with the amount committed to TotalScore
+    public UnityEvent<float> OnComboChanged;    // fires with the new combo value (0 means combo just ended)
+    public UnityEvent OnComboEnded;             // fires on cash-out
+    public UnityEvent<string> OnTrickName;      // fires with the trick label — read LastTrickBasePoints at the same moment for the amount
+    public UnityEvent<int> OnAirCommitted;      // fires when air buffer commits on landing (no combo); handy for a small splash
 
     private void Awake()
     {
@@ -89,10 +95,23 @@ public class ComboScoreSystem : MonoBehaviour
 
     // ---------- Public API ----------
 
+    [Header("Trick names (shown in HUD)")]
+    [Tooltip("Label fired via OnTrickName when the cat hits a ball.")]
+    public string catHitTrickName = "BAT!";
+    [Tooltip("Label fired via OnTrickName when a ball bounces off a wall.")]
+    public string wallBounceTrickName = "WALL BOUNCE";
+    [Tooltip("Label fired via OnTrickName at a combo milestone — appended with the combo value.")]
+    public string bigComboTrickName = "COMBO";
+    [Tooltip("Combo value at which the big-combo trick name fires each time it crosses an integer step.")]
+    public float bigComboThreshold = 3.0f;
+    private int _lastReportedBigCombo = 0;
+
     /// <summary>Cat hit a ball. Call once per actual hit (not every frame of contact).</summary>
     public void OnCatHitBall()
     {
         if (debugLogs) Debug.Log($"<color=#8ff>[Combo] CAT HIT BALL</color> (+{ballHitPoints} base)");
+        LastTrickBasePoints = ballHitPoints;      // set BEFORE invoking so handlers can read it
+        OnTrickName?.Invoke(catHitTrickName);
         AddScoreEvent(ballHitPoints);
     }
 
@@ -100,7 +119,18 @@ public class ComboScoreSystem : MonoBehaviour
     public void OnBallHitWall()
     {
         if (debugLogs) Debug.Log($"<color=#fc8>[Combo] BALL HIT WALL</color> (+{wallBouncePoints} base)");
+        LastTrickBasePoints = wallBouncePoints;
+        OnTrickName?.Invoke(wallBounceTrickName);
         AddScoreEvent(wallBouncePoints);
+    }
+
+    /// <summary>Call this for anything else you want to score — e.g. a safety grab, a stylish fall.</summary>
+    public void OnCustomTrick(string label, int basePoints)
+    {
+        if (debugLogs) Debug.Log($"<color=#f8c>[Combo] TRICK {label}</color> (+{basePoints} base)");
+        LastTrickBasePoints = basePoints;
+        OnTrickName?.Invoke(label);
+        AddScoreEvent(basePoints);
     }
 
     /// <summary>Manually end the combo now (e.g. on cat death, round end). Commits pending + air buffer.</summary>
@@ -127,6 +157,18 @@ public class ComboScoreSystem : MonoBehaviour
         }
 
         OnComboChanged?.Invoke(CurrentCombo);
+
+        // Big-combo milestones: fire an extra trick label every time combo crosses
+        // bigComboThreshold, bigComboThreshold+1, +2, etc. so the HUD can flash "COMBO x4!"
+        int bigStep = Mathf.FloorToInt(CurrentCombo);
+        if (CurrentCombo >= bigComboThreshold && bigStep > _lastReportedBigCombo)
+        {
+            _lastReportedBigCombo = bigStep;
+            // Milestones are decorative — no extra base points. HUD can check
+            // LastTrickBasePoints == 0 to hide the "+N" line for these.
+            LastTrickBasePoints = 0;
+            OnTrickName?.Invoke($"{bigComboTrickName} x{bigStep}!");
+        }
     }
 
     private void Update()
@@ -146,6 +188,7 @@ public class ComboScoreSystem : MonoBehaviour
             int airAmount = Mathf.RoundToInt(AirBuffer);
             if (debugLogs) Debug.Log($"<color=#8f8>[Combo] AIR COMMIT (no combo)</color> landed with +{airAmount} air points -> Total");
             CommitToTotal(airAmount);
+            OnAirCommitted?.Invoke(airAmount);
             AirBuffer = 0f;
         }
         // else: grounded with combo active — HOLD the air buffer, don't commit, don't fill.
@@ -172,6 +215,7 @@ public class ComboScoreSystem : MonoBehaviour
         AirBuffer = 0f;
         CurrentCombo = 0f;
         ComboTimeRemaining = 0f;
+        _lastReportedBigCombo = 0; // reset big-combo milestone tracker so next chain can fire them again
 
         OnComboChanged?.Invoke(0f);
         OnComboEnded?.Invoke();

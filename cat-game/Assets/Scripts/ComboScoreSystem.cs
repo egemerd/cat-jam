@@ -163,6 +163,7 @@ public class ComboScoreSystem : MonoBehaviour
     public void ForceEndCombo()
     {
         if (ComboActive) EndCombo();
+        
     }
 
     // ---------- Internals ----------

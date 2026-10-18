@@ -1,49 +1,59 @@
-using Unity.Cinemachine; // Cinemachine 2.x namespace (no "Unity." prefix)
 using UnityEngine;
-using UnityEngine.InputSystem;
+using Unity.Cinemachine;
+using StarterAssets;
 
 /// <summary>
-/// Widens the Cinemachine camera's FOV while sprinting. (Cinemachine 2.x)
+/// Hýz boost'u ile FOV punch. vcam'in üzerine (veya herhangi bir yere) ekle,
+/// vcam ve controller referanslarýný Inspector'dan ata.
 ///
-/// You cannot set Camera.fieldOfView directly with Cinemachine — the Brain
-/// overrides it from the vcam's Lens every frame. So this writes to the
-/// vcam's m_Lens.FieldOfView instead.
-///
-/// Put this component ON your Cinemachine Virtual Camera object.
+/// Çalýþma mantýðý:
+///   boost = 0           -> FOV == baseFov
+///   boost >= boostAtMax -> FOV == boostedFov
+///   arasý              -> ikisi arasýnda lerp
+/// Hedef FOV'a geçiþ framerate-independent exponential lerp ile smooth olur.
 /// </summary>
-public class SprintFOV : MonoBehaviour
+public class SprintFov : MonoBehaviour
 {
-    [Tooltip("The virtual camera to zoom. Auto-filled if this script is on the vcam.")]
+    [Header("Refs")]
+    [Tooltip("Hangi Cinemachine kamerasýnýn FOV'u deðiþsin. Boþ býrakýrsan bu GameObject'in üzerindekini kullanýr.")]
     public CinemachineCamera vcam;
+    [Tooltip("Hýz boost'unu okuyacaðýmýz controller. ExternalSpeedBoost field'ýný okur.")]
+    public ThirdPersonController controller;
 
     [Header("FOV")]
-    public float normalFov = 60f;
-    public float sprintFov = 75f;
-    [Tooltip("How fast the FOV eases between the two. Higher = snappier.")]
+    [Tooltip("Boost yokken sabit duran FOV. Start'ta vcam'in mevcut FOV'u otomatik buraya yazýlýr.")]
+    public float baseFov = 60f;
+    [Tooltip("Boost en yüksekte iken ulaþýlacak FOV.")]
+    public float boostedFov = 72f;
+    [Tooltip("ExternalSpeedBoost bu deðere ulaþtýðýnda FOV = boostedFov olur. CatBallInteraction'daki maxBoost ile ayný olsun.")]
+    public float boostAtMax = 6f;
+    [Tooltip("Lerp hýzý. Yüksek = snappier (daha hýzlý tepki), düþük = daha yumuþak geçiþ.")]
     public float lerpSpeed = 8f;
-
-    [Header("Sprint source")]
-    [Tooltip("ON = holding Left Shift counts as sprinting (quick test).\nOFF = you set IsSprinting from your own controller instead.")]
-    public bool useLeftShiftAsSprint = true;
-
-    /// <summary>Set this from your character controller if you don't use the Shift key.</summary>
-    public bool IsSprinting { get; set; }
 
     private void Reset()
     {
-        vcam = GetComponent<CinemachineCamera>();
+        // Component ilk eklendiðinde otomatik doldur
+        if (vcam == null) vcam = GetComponent<CinemachineCamera>();
+    }
+
+    private void Start()
+    {
+        // Vcam'in mevcut FOV'unu base olarak yakala — Inspector'da ayrý deðer girmene gerek kalmasýn
+        if (vcam != null) baseFov = vcam.Lens.FieldOfView;
     }
 
     private void Update()
     {
-        if (vcam == null) return;
-        
-        if (useLeftShiftAsSprint && Keyboard.current != null)
-            IsSprinting = Keyboard.current.leftShiftKey.isPressed;
+        if (vcam == null || controller == null) return;
 
-        float target = IsSprinting ? sprintFov : normalFov;
+        // Boost miktarýna göre hedef FOV'u hesapla
+        float t = Mathf.Clamp01(controller.ExternalSpeedBoost / Mathf.Max(0.01f, boostAtMax));
+        float targetFov = Mathf.Lerp(baseFov, boostedFov, t);
 
-        // 2.x stores le
-        vcam.Lens.FieldOfView = Mathf.Lerp(vcam.Lens.FieldOfView, target, lerpSpeed * Time.deltaTime);
+        // Framerate-independent smooth lerp
+        var lens = vcam.Lens;
+        float k = 1f - Mathf.Exp(-lerpSpeed * Time.deltaTime);
+        lens.FieldOfView = Mathf.Lerp(lens.FieldOfView, targetFov, k);
+        vcam.Lens = lens;
     }
 }

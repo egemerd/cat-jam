@@ -4,8 +4,7 @@ using UnityEngine.InputSystem;
 
 #endif
 
-/* Note: animations are called via the controller for both the character and capsule using animator null checks
- */
+
 
 namespace StarterAssets
 {

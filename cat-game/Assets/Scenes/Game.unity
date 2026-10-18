@@ -421,6 +421,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &305459879 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5098137290620191975, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
+  m_PrefabInstance: {fileID: 1424254793286765778}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &542508511
 GameObject:
   m_ObjectHideFlags: 0
@@ -7229,7 +7234,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8448371059146332048, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
   m_PrefabInstance: {fileID: 1424254793286765778}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 305459879}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e087ecce43ebbff45a1b360637807d93, type: 3}
@@ -7471,7 +7476,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4834798219849012272, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1175400062}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5098137290620191975, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4416926083347132244}
   m_SourcePrefab: {fileID: 100100000, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
 --- !u!23 &1711813855196058229
 MeshRenderer:
@@ -7703,7 +7711,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6948807499658879278, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
   m_PrefabInstance: {fileID: 1424254793286765778}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 305459879}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -7714,12 +7722,41 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 498107293867752042, guid: 9a8315275cf985043a3509cf6a0137dc, type: 3}
   m_PrefabInstance: {fileID: 1424254793286765778}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 305459879}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4416926083347132244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305459879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fbe3dda28b7cab4fbcdbb8a46b50ad3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ComboScoreSystem
+  controller: {fileID: 4416926083347132240}
+  ballHitPoints: 500
+  wallBouncePoints: 300
+  airPointsPerSecond: 50
+  comboStart: 1
+  comboIncrement: 0.1
+  comboWindow: 1.8
+  debugLogs: 1
+  OnScoreCommitted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnComboChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnComboEnded:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &5226203432431967431
 PrefabInstance:
   m_ObjectHideFlags: 0

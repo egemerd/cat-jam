@@ -114,9 +114,9 @@ public class BounceBall : MonoBehaviour
     }
 
     /// <summary>Called by the cat (CatBallInteraction) when it runs into this ball.</summary>
-    public void BounceFromCat(Vector3 catForward , Vector3 hitPoint)
+    public bool BounceFromCat(Vector3 catForward , Vector3 hitPoint)
     {
-        if (_active && Time.time - _lastLaunchTime < reHitCooldown) return;
+        if (_active && Time.time - _lastLaunchTime < reHitCooldown) return false;
 
         // Cat hit the ball — combo resets. A new chain starts from the next wall bounce.
         ComboCount = 0;
@@ -129,6 +129,7 @@ public class BounceBall : MonoBehaviour
 
         if (_routine != null) StopCoroutine(_routine);
         _routine = StartCoroutine(BallRoutine(dir));
+        return true;
     }
 
     private Vector3 BuildBounceDirection(Vector3 catForward)

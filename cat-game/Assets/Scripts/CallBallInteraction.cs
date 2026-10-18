@@ -113,9 +113,11 @@ public class CatBallInteraction : MonoBehaviour
     {
         BounceBall ball = hit.collider.GetComponentInParent<BounceBall>();
         if(ball != null)
-        {  
-            ball.BounceFromCat(transform.forward, hit.point);
-            ComboScoreSystem.Instance?.OnCatHitBall();
+        {
+            if (ball.BounceFromCat(transform.forward, hit.point))
+            {
+                ComboScoreSystem.Instance?.OnCatHitBall();
+            }
         }
         vfxPlayed = false;
     }

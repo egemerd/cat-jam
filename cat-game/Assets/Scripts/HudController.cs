@@ -53,6 +53,16 @@ public class HudController : MonoBehaviour
     public TMP_Text comboCounterText;
     public string comboCounterFormat = "x{0:F1}";
 
+    [Header("6. Goal count (optional)")]
+    [Tooltip("Shows how many balls have gone in the goal this session.")]
+    public TMP_Text goalCountText;
+    public string goalCountFormat = "GOALS: {0}";
+
+    [Header("7. Ring count (optional)")]
+    [Tooltip("Shows how many perfect ring passes the cat has done this session.")]
+    public TMP_Text ringCountText;
+    public string ringCountFormat = "RINGS: {0}";
+
     // --- internal state ---
     private int _rawPendingBase;      // running sum of BASE (un-multiplied) TRICK points this combo
     private int _lastTrickBase;       // base points of the most recent trick (for the "+50" line)
@@ -129,6 +139,12 @@ public class HudController : MonoBehaviour
         // Combo counter standalone.
         if (comboCounterText != null)
             comboCounterText.text = comboActive ? string.Format(comboCounterFormat, s.CurrentCombo) : "";
+
+        // Goal / ring counters — update every frame, cheap.
+        if (goalCountText != null)
+            goalCountText.text = string.Format(goalCountFormat, s.GoalsScored);
+        if (ringCountText != null)
+            ringCountText.text = string.Format(ringCountFormat, s.PerfectRings);
 
         // Total score — smooth catch-up so cash-outs tick visibly (100 -> 500) instead of snapping.
         // Big gaps race faster than small ones so a huge payout doesn't take forever to arrive.

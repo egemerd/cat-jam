@@ -73,6 +73,12 @@ public class ComboScoreSystem : MonoBehaviour
     /// <summary>Base points of the most recent trick. Read this inside an OnTrickName handler.</summary>
     public int LastTrickBasePoints { get; private set; }
 
+    /// <summary>How many balls have scored in a BallGoal this session.</summary>
+    public int GoalsScored { get; private set; }
+
+    /// <summary>How many PERFECT RING passes the cat has completed this session.</summary>
+    public int PerfectRings { get; private set; }
+
     // --- events (hook up in inspector OR via code for UI animations) ---
     [Header("Events (optional, for UI feedback)")]
     public UnityEvent<int> OnScoreCommitted;    // fires with the amount committed to TotalScore
@@ -128,6 +134,26 @@ public class ComboScoreSystem : MonoBehaviour
     public void OnCustomTrick(string label, int basePoints)
     {
         if (debugLogs) Debug.Log($"<color=#f8c>[Combo] TRICK {label}</color> (+{basePoints} base)");
+        LastTrickBasePoints = basePoints;
+        OnTrickName?.Invoke(label);
+        AddScoreEvent(basePoints);
+    }
+
+    /// <summary>Called by BallGoal when a ball enters the goal. Increments GoalsScored.</summary>
+    public void OnBallInGoal(int basePoints)
+    {
+        if (debugLogs) Debug.Log($"<color=#8f8>[Combo] GOAL!</color> (+{basePoints} base)");
+        GoalsScored++;
+        LastTrickBasePoints = basePoints;
+        OnTrickName?.Invoke("GOAL!");
+        AddScoreEvent(basePoints);
+    }
+
+    /// <summary>Called by BigRing when the cat passes through perfectly. Increments PerfectRings.</summary>
+    public void OnCatInRing(int basePoints, string label = "PERFECT RING!")
+    {
+        if (debugLogs) Debug.Log($"<color=#88f>[Combo] RING!</color> (+{basePoints} base)");
+        PerfectRings++;
         LastTrickBasePoints = basePoints;
         OnTrickName?.Invoke(label);
         AddScoreEvent(basePoints);
